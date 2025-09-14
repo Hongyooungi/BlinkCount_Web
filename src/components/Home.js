@@ -6,7 +6,7 @@ import image4 from './image-4.png';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
 
-export const Home = () => {
+export const  Home = ({ user }) => {
   const navigate = useNavigate();
   return (
     <div className="screen">
@@ -23,12 +23,21 @@ export const Home = () => {
             </div>
 
             <div className="START-wrapper">
-              <button
-                className="text-wrapper"
-                onClick={() => navigate('/login')}
-              >
-                Start
-              </button>
+              {user ? (
+                <button
+                  className="text-wrapper"
+                  onClick={() => navigate('/mypage')}
+                >
+                  My Page
+                </button>
+                      ) : (
+                <button
+                  className="text-wrapper"
+                  onClick={() => navigate('/login')}
+                >
+                  Start
+                </button>
+              )}
             </div>
           </div>
         </div>

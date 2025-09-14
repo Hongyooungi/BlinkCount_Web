@@ -1,11 +1,29 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // useNavigate import 추가
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // useNavigate import 추가
 import './Mypage.css';
 
-export const Mypage = () => {
+import { auth } from '../firebase'; // <-- firebase 설정 가져오기
+import { onAuthStateChanged, signOut } from 'firebase/auth'; // <-- 필요한 함수들 가져오기
+
+export const Mypage = ({ user }) => { 
   const navigate = useNavigate(); // navigate 훅 사용
-  const location = useLocation(); // location 훅 사용
-  const userName = location.state ? location.state.name : 'Guest'; // 로그인 시 전달된 이름
+  const [userName, setUserName] = useState('Guest');
+
+  //컴포넌트가 로드될 때 로그인 상태를 감지 -->
+  useEffect(() => {
+    if (user) {
+      setUserName(user.displayName || user.email);
+    } else {
+      // user가 없으면(로그아웃되면) Mypage에 있을 이유가 없으므로 로그인 페이지로 보냅니다.
+      setUserName('Guest');
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+    const handleLogout = async () => {
+        await signOut(auth);
+        navigate('/'); // 로그아웃하면 홈으로 보냅니다. (App.js가 상태 변경을 감지합니다)
+    };
 
   return (
     <div className="M-screen">
@@ -125,7 +143,7 @@ export const Mypage = () => {
         </div>
 
         <div className="logout-wrapper">
-          <button className="logout" onClick={() => navigate('/')}>
+          <button className="logout"  onClick={handleLogout}>
             LOGOUT
           </button>
         </div>
