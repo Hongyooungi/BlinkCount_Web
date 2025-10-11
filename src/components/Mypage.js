@@ -5,6 +5,10 @@ import './Mypage.css';
 import { auth } from '../firebase'; // <-- firebase 설정 가져오기
 import { onAuthStateChanged, signOut } from 'firebase/auth'; // <-- 필요한 함수들 가져오기
 
+import axios from 'axios';
+
+const API_URL = 'https://my-video-api-167111056322.asia-northeast3.run.app';
+
 export const Mypage = ({ user }) => { 
   const navigate = useNavigate(); // navigate 훅 사용
   const [userName, setUserName] = useState('Guest');
@@ -24,6 +28,40 @@ export const Mypage = ({ user }) => {
         await signOut(auth);
         navigate('/'); // 로그아웃하면 홈으로 보냅니다. (App.js가 상태 변경을 감지합니다)
     };
+
+  const handleStartLearningOnDesktop = async () => {
+    try {
+      // 현재 로그인된 사용자가 있는지 다시 한번 확인합니다.
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        navigate('/login');
+        return;
+      }
+      const idToken = await currentUser.getIdToken();
+
+      // 1. 보안실(백엔드)에 연락하여 일회용 암호(토큰)를 요청합니다.
+      console.log("백엔드에 일회용 토큰을 요청합니다...");
+      const response = await axios.post(
+        `${API_URL}/api/generate-desktop-token`, 
+        {}, // body는 비워둡니다.
+        { headers: { 'Authorization': `Bearer ${idToken}` } }
+      );
+      const { token } = response.data;
+      console.log("일회용 토큰을 성공적으로 받았습니다:", token);
+
+      // 2. 받은 암호로 특별 초대장(커스텀 프로토콜 링크)을 만듭니다.
+      const magicLink = `zoner-app://login?token=${token}`;
+      
+      // 3. 브라우저에게 이 초대장을 열라고 지시합니다. (OS가 Electron 앱을 실행시킬 겁니다)
+      console.log("Electron 앱을 실행합니다:", magicLink);
+      window.location.href = magicLink;
+
+    } catch (error) {
+      console.error("데스크톱 앱 실행 실패:", error);
+      alert("앱을 실행하는 데 실패했습니다. PC에 Zoner 앱이 설치되어 있는지 확인해주세요.");
+    }
+  };
 
   return (
     <div className="M-screen">
@@ -115,7 +153,7 @@ export const Mypage = ({ user }) => {
         <div className="frame-6">
           <button
             className="text-wrapper-3"
-            onClick={() => navigate('/start-learning')}
+            onClick={handleStartLearningOnDesktop}
           >
             학습 시작
           </button>
