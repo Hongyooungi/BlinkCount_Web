@@ -36,6 +36,40 @@
   width: 527px;
 }
 
+.S-screen .rectangle,
+.S-screen .rectangle-2,
+.S-screen .rectangle-3,
+.S-screen .rectangle-4,
+.S-screen .rectangle-5,
+.S-screen .rectangle-6,
+.S-screen .rectangle-7,
+.S-screen .rectangle-8,
+.S-screen .rectangle-9 {
+  padding: 0; /* 내부 여백을 제거하여 비디오가 꽉 차도록 합니다. */
+  overflow: hidden; /* 삐져나온 비디오 부분을 잘라냅니다. (매우 중요!) */
+  position: relative; /* 제목을 올리기 위한 기준점 역할을 합니다. */
+  cursor: pointer; /* 마우스를 올리면 클릭 가능하다는 것을 알려줍니다. */
+  border: none; /* button 태그의 기본 테두리를 제거합니다. */
+}
+
+.S-screen .rectangle video,
+.S-screen .rectangle-2 video,
+.S-screen .rectangle-3 video,
+.S-screen .rectangle-4 video,
+.S-screen .rectangle-5 video,
+.S-screen .rectangle-6 video,
+.S-screen .rectangle-7 video,
+.S-screen .rectangle-8 video,
+.S-screen .rectangle-9 video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 비디오가 찌그러지지 않고 비율을 유지한 채로 꽉 채웁니다. */
+  z-index: 1; /* 제목보다 뒤에 위치하도록 설정 */
+}
+
 .S-screen .rectangle {
   background-color: #d7dfff;
   border-radius: 36px;

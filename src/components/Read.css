@@ -41,7 +41,14 @@
   width: fit-content;
 }
 
-.R-screen .div-wrapper {
+.R-screen .video-player-wrapper video {
+  width: 100%;
+  height: 100%;
+  /* 비디오가 찌그러지지 않고 비율을 유지한 채로 꽉 채웁니다. */
+  object-fit: contain; 
+}
+
+.R-screen .video-player-wrapper {
   background-color: #f2f2f2;
   border: 0px none;
   height: 756px;
@@ -49,21 +56,6 @@
   position: absolute;
   top: 150px;
   width: 1290px;
-}
-
-.R-screen .text-wrapper {
-  color: #000000;
-  font-family: 'Inika-Bold', Helvetica;
-  font-size: 50px;
-  font-weight: 700;
-  height: 229px;
-  left: 399px;
-  letter-spacing: 0;
-  line-height: normal;
-  position: absolute;
-  text-align: center;
-  top: 264px;
-  width: 493px;
 }
 
 .R-screen .overlap {
