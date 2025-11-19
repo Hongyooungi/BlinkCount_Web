@@ -63,7 +63,8 @@ export const Save = ({user}) => {
     navigate('/read', { 
       state: { 
         videoUrl: video.url,
-        videoTitle: video.title
+        videoTitle: video.title,
+        gcsFileName: video.filename
       } 
     });
   };
