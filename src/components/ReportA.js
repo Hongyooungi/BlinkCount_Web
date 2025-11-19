@@ -34,7 +34,7 @@ export const ReportA = () => {
 
       <div className="overlap-wrapper">
         <div className="overlap-group">
-          <div className="text-wrapper-2">학습 리포트 분석하기</div>
+          <div className="text-wrapper-2">학습 리포트 다운받기</div>
         </div>
       </div>
     </div>

@@ -13,6 +13,10 @@ export const Mypage = ({ user }) => {
   const navigate = useNavigate(); // navigate 훅 사용
   const [userName, setUserName] = useState('Guest');
 
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // 동영상 목록, 로딩, 에러 상태를 관리합니다
+
   //컴포넌트가 로드될 때 로그인 상태를 감지 -->
   useEffect(() => {
     if (user) {
@@ -22,6 +26,33 @@ export const Mypage = ({ user }) => {
       setUserName('Guest');
       navigate('/login');
     }
+
+    const fetchVideos = async () => {
+      if (!user) {
+        setLoading(false);
+        return; // 사용자가 없으면 요청하지 않음
+      }
+      try {
+        setLoading(true);
+        const idToken = await user.getIdToken(); // 현재 사용자의 신분증(ID 토큰)
+        
+        // axios를 사용하여 백엔드에 GET 요청을 보냅니다. (신분증 첨부)
+        const response = await axios.get(`${API_URL}/api/videos`, {
+          headers: { 'Authorization': `Bearer ${idToken}` }
+        });
+
+        setVideos(response.data); // 서버로부터 받은 동영상 목록을 state에 저장
+        setError(null);
+      } catch (err) {
+        console.error("동영상 목록 로딩 실패:", err);
+        setError("학습 기록을 불러오는 데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVideos(); // 함수 실행
+
   }, [user, navigate]);
 
     const handleLogout = async () => {
@@ -63,6 +94,17 @@ export const Mypage = ({ user }) => {
     }
   };
 
+  const handleThumbnailClick = (video) => {
+    if (!video) return; // 비디오 데이터가 없으면 아무것도 안 함
+    navigate('/read', { 
+      state: { 
+        videoUrl: video.url,
+        videoTitle: video.title,
+        gcsFileName: video.filename
+      } 
+    });
+  };
+
   return (
     <div className="M-screen">
       <div className="M-div">
@@ -81,11 +123,42 @@ export const Mypage = ({ user }) => {
               <span className="span">최근 학습 녹화 기록 열람 가능(3개)</span>
             </p>
 
-            <div className="rectangle" />
+            <button className="rectangle" onClick={() => handleThumbnailClick(videos[0])}>
+              {videos[0] && ( // videos 배열의 첫 번째 데이터가 존재하면 썸네일을 보여줍니다.
+              <>
+                <video preload="metadata" muted>
+                  <source src={videos[0].url + '#t=0.5'} type="video/webm" />
+                </video>
+                <div className="video-thumbnail-title">{videos[0].title}</div>
+              </>
+            )}
 
-            <div className="rectangle-2" />
+          </button>
 
-            <div className="rectangle-3" />
+            <button className="rectangle-2" onClick={() => handleThumbnailClick(videos[1])}>
+              {videos[1] && ( // videos 배열의 첫 번째 데이터가 존재하면 썸네일을 보여줍니다.
+              <>
+                <video preload="metadata" muted>
+                  <source src={videos[1].url + '#t=0.5'} type="video/webm" />
+                </video>
+                <div className="video-thumbnail-title">{videos[1].title}</div>
+              </>
+            )}
+          </button>
+
+            <button className="rectangle-3" onClick={() => handleThumbnailClick(videos[2])}>
+              {videos[2] && ( // videos 배열의 첫 번째 데이터가 존재하면 썸네일을 보여줍니다.
+              <>
+                <video preload="metadata" muted>
+                  <source src={videos[2].url + '#t=0.5'} type="video/webm" />
+                </video>
+                <div className="video-thumbnail-title">{videos[2].title}</div>
+              </>
+            )}
+          </button>
+          {loading && <div className="status-message">로딩 중...</div>}
+          {error && <div className="status-message error">{error}</div>}
+          
           </div>
 
           <div className="frame-3">
