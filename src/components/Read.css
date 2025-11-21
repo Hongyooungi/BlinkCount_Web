@@ -60,19 +60,16 @@
 
 .R-screen .overlap {
   height: 102px;
-  left: 956px;
+  left: 75px;
   position: absolute;
   top: 888px;
   width: 429px;
-}
+  gap : 20px;
 
-.R-screen .overlap-wrapper {
-  background-color: #ffffff;
-  height: 102px;
-  left: 60px;
-  position: absolute;
-  top: 915px;
-  width: 362px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+
 }
 
 .R-screen .frame-2 {
@@ -88,7 +85,34 @@
   width: 71px;
 }
 
-.R-screen .overlap-group-wrapper {
+.R-screen .overlap-wrapper-list {
+  background-color: #ffffff;
+  height: 102px;
+  left: -35px;
+  position: absolute;
+  top: 27px;
+  width: 362px;
+}
+
+.R-screen .overlap-wrapper-delete {
+  background-color: #ffffff;
+  height: 102px;
+  left: -515px;
+  position: absolute;
+  top: 27px;
+  width: 362px;
+}
+
+.R-screen .overlap-wrapper-report {
+  background-color: #ffffff;
+  height: 102px;
+  left: -1025px;
+  position: absolute;
+  top: 27px;
+  width: 362px;
+}
+
+.R-screen .overlap-wrapper {
   background-color: #ffffff;
   height: 102px;
   left: -35px;
@@ -101,11 +125,11 @@
   background-color: #eeeeee;
   border-radius: 45.5px;
   height: 91px;
-  left: 135px;
-  margin-right: 500px;
+  left: 0px;
   position: relative;
   top: 6px;
   width: 324px;
+  cursor: pointer;
 }
 
 .R-screen .text-wrapper-2 {

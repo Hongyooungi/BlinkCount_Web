@@ -69,6 +69,40 @@ export const Save = ({user}) => {
     });
   };
 
+  const handleStartLearningOnDesktop = async () => {
+    try {
+      // 현재 로그인된 사용자가 있는지 다시 한번 확인합니다.
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        navigate('/login');
+        return;
+      }
+      const idToken = await currentUser.getIdToken();
+
+      // 1. 보안실(백엔드)에 연락하여 일회용 암호(토큰)를 요청합니다.
+      console.log("백엔드에 일회용 토큰을 요청합니다...");
+      const response = await axios.post(
+        `${API_URL}/api/generate-desktop-token`, 
+        {}, // body는 비워둡니다.
+        { headers: { 'Authorization': `Bearer ${idToken}` } }
+      );
+      const { token } = response.data;
+      console.log("일회용 토큰을 성공적으로 받았습니다:", token);
+
+      // 2. 받은 암호로 특별 초대장(커스텀 프로토콜 링크)을 만듭니다.
+      const magicLink = `zoner-app://login?token=${token}`;
+      
+      // 3. 브라우저에게 이 초대장을 열라고 지시합니다. (OS가 Electron 앱을 실행시킬 겁니다)
+      console.log("Electron 앱을 실행합니다:", magicLink);
+      window.location.href = magicLink;
+
+    } catch (error) {
+      console.error("데스크톱 앱 실행 실패:", error);
+      alert("앱을 실행하는 데 실패했습니다. PC에 Zoner 앱이 설치되어 있는지 확인해주세요.");
+    }
+  };
+
   return (
     <div className="S-screen">
       <div className="S-div">
@@ -190,15 +224,18 @@ export const Save = ({user}) => {
         </div>
 
         <div className="frame-5">
-          <button className="text-wrapper-3">AI 채팅</button>
+          <button className="text-wrapper-3">
+            AI 채팅
+            </button>
         </div>
 
         <div className="frame-6">
-          <button className="text-wrapper-3">학습 시작</button>
+          <button className="text-wrapper-3" onClick={handleStartLearningOnDesktop} >학습 시작</button>
+
         </div>
 
         <div className="frame-7">
-          <button className="text-wrapper-3">학습 기록</button>
+          <button className="text-wrapper-3" onClick={() => navigate('/save')}>학습 기록</button>
         </div>
 
         <div className="frame-8">

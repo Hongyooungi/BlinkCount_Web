@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 // './Read.css' 파일이 동일한 폴더에 있다고 가정합니다.
-import './Read.css'; 
+import './Read.css';
+
+import { auth } from '../firebase'; // firebase 설정
+import { onAuthStateChanged } from 'firebase/auth';
 
 // 1. '카운터' 서비스 주소
 const API_SERVICE_URL = "https://drowsiness-api-service-167111056322.asia-northeast3.run.app";
+const VIDEO_API_URL = "https://my-video-api-167111056322.asia-northeast3.run.app"; 
 // 2. GCS 버킷 이름
 const BUCKET_NAME = "blinkcount_video";
+const TRASH_BUCKET_NAME = "blinkcount_trash";
+
 // 3. 상태 확인 주기 (5초)
 const POLL_INTERVAL_MS = 5000;
 
@@ -20,6 +26,20 @@ export const Read = () => {
   const videoTitle = location.state?.videoTitle || '영상 재생'; 
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUser(user);
+      } else {
+        setCurrentUser(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     // videoTitle (파일 이름)도 필수 값으로 확인합니다.
@@ -98,7 +118,8 @@ export const Read = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bucket: BUCKET_NAME,
-          file: gcsFileName, // videoTitle을 파일 이름으로 사용
+          file: gcsFileName,
+          uid: auth.currentUser?.uid // videoTitle을 파일 이름으로 사용
         }),
       });
 
@@ -137,6 +158,73 @@ export const Read = () => {
     }
   };
 
+  const handleDeleteClick = async () => {
+    if (!gcsFileName) {
+      alert("오류: 삭제할 파일 정보가 없습니다.");
+      return;
+    }
+
+     if (!currentUser) {
+        alert("로그인이 필요합니다. 잠시 후 다시 시도하거나 다시 로그인해주세요.");
+        return;
+    }
+
+    // 사용자 확인
+    const confirmed = window.confirm(
+      "정말로 이 영상을 휴지통으로 이동하시겠습니까?\n\n- 원본 영상은 휴지통으로 이동됩니다.\n- 학습 기록(Firebase)은 영구 삭제됩니다."
+    );
+    
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+
+    try {
+
+      const token = await currentUser.getIdToken(true);
+
+      // 백엔드의 /move-to-trash 엔드포인트 호출
+      const response = await fetch(`${VIDEO_API_URL}/api/move-to-trash`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          source_bucket: BUCKET_NAME, // blinkcount_video
+          trash_bucket: TRASH_BUCKET_NAME,   // blinkcount_trash
+          file_name: gcsFileName,            // 파일명 (예: session_xyz.webm)
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMsg = '이동 실패';
+        try {
+            const errData = await response.json(); // JSON 시도
+            errorMsg = errData.error || errorMsg;
+        } catch (jsonError) {
+            // JSON이 아니면(Unauthorized 등) 텍스트로 읽기
+            // clone()을 사용하여 스트림을 다시 읽을 수 있게 할 수도 있으나 여기선 바로 처리
+            // response body가 이미 소비되었을 수 있으므로 주의하지만, 위에서 에러나면 소비 안 됨.
+            // 단순하게 텍스트로 다시 읽거나 statusText 사용
+            errorMsg = `서버 오류 (${response.status}): ${response.statusText}`;
+        }
+        throw new Error(errorMsg);
+      }
+
+      // 성공 시 알림 및 목록으로 이동
+      alert('성공적으로 휴지통으로 이동되었으며, 학습 기록이 삭제되었습니다.');
+      navigate('/save');
+
+    } catch (err) {
+      console.error("삭제 요청 실패:", err);
+      // "Unauthorized" 문자열이 포함되어 있으면 안내 메시지 변경
+      if (err.message.includes("Unauthorized") || err.message.includes("403")) {
+          alert("권한이 없습니다. 다시 로그인해주세요.");
+      } else {
+          alert(`실패: ${err.message}`);
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // videoUrl이 없는 경우 (상단 useEffect에서 처리하지만 방어 코드)
   if (!videoUrl) {
     return null; 
@@ -165,7 +253,7 @@ export const Read = () => {
         <div className="overlap">
           <div className="frame-2" />
 
-          <div className="overlap-group-wrapper">
+          <div className="overlap-wrapper-list">
             <div className="overlap-group">
               <button
                 className="text-wrapper-2"
@@ -175,20 +263,30 @@ export const Read = () => {
               </button>
             </div>
           </div>
+
+          <div className="overlap-wrapper-delete"> 
+            <button
+              className="overlap-group"
+              onClick={handleDeleteClick}
+              disabled={isDeleting}
+            >
+            <div className="text-wrapper-2">{isDeleting ? '🗑️ 삭제 중...' : '휴지통으로 보내기'}</div>
+          </button>
+          </div>
+
+        <div className="overlap-wrapper-report">
+          <button
+              className="overlap-group"
+              onClick={handleAnalysisClick}
+              disabled={isLoading}
+          >
+            <div className="text-wrapper-2">{isLoading ? '리포트 생성 중...' : '학습 리포트 생성'}</div>
+          </button>
         </div>
       </div>
 
-      <div className="overlap-wrapper">
-        <button
-          className="overlap-group"
-          onClick={handleAnalysisClick}
-          disabled={isLoading}
-        >
-          <div className="text-wrapper-2">{isLoading ? '리포트 생성 중...' : '학습 리포트 생성'}</div>
-        </button>
-      </div>
-      
     </div>
+  </div>
   );
 };
 
