@@ -49,6 +49,22 @@
   position: absolute;
   top: 150px;
   width: 1290px;
+
+  justify-content: center;
+  display: flex;
+  align-items: center;
+
+}
+
+.R-screen .pdf-iframe {
+    width: 40%; /* 뷰어 너비 */
+    height: 90%;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+
+    justify-content: center;
+    display: flex;
+    align-items: center;
 }
 
 .R-screen .text-wrapper {
